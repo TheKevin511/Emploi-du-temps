@@ -1,247 +1,953 @@
 <!DOCTYPE html>
 <html lang="fr" data-theme="light">
+
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Emploi du temps</title>
-<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Playfair+Display:ital,wght@1,600&display=swap" rel="stylesheet">
-<style>
-:root{
-  --bg:#f3f4f7;--panel:#fff;--ink:#1f2430;--muted:#6b7385;--line:#e4e7ee;
-  --head:#3b3f4a;--headink:#fff;--empty:#f1f2f5;--hour:#eceef3;--accent:#5b4bdb;--now:#5b4bdb;
-  --c1:#dbeafe;--c2:#d7ece1;--c3:#ead7fb;--c4:#ffe3c2;--c5:#ffd7d7;--c6:#fff3b8;--c7:#cdf1f1;--c8:#e6e6e6;
-  --cink:#1f2430;
-}
-[data-theme="dark"]{
-  --bg:#12141a;--panel:#1b1e27;--ink:#e8eaf0;--muted:#98a0b3;--line:#2b303c;
-  --head:#2b3040;--headink:#e8eaf0;--empty:#222633;--hour:#262b39;--accent:#8b7dff;--now:#8b7dff;
-  --c1:#25406b;--c2:#23513f;--c3:#4a3170;--c4:#6b4720;--c5:#6b2d2d;--c6:#675b1c;--c7:#1f5656;--c8:#3a3e4a;
-  --cink:#f2f3f7;
-}
-*{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);font-family:Manrope,"Segoe UI",system-ui,sans-serif;transition:background .25s,color .25s}
-.wrap{max-width:1180px;margin:0 auto;padding:24px 16px 48px}
-header{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:18px}
-.title{display:flex;align-items:baseline;gap:16px;flex-wrap:wrap}
-h1{margin:0;font-size:22px;font-weight:800;letter-spacing:.02em;background:var(--hour);padding:8px 16px;border-radius:8px}
-#owner{font:italic 600 34px "Playfair Display",Georgia,serif;outline:none;min-width:90px;border-bottom:2px dashed transparent}
-#owner:focus,#owner:hover{border-bottom-color:var(--muted)}
-.tools{display:flex;gap:8px;flex-wrap:wrap}
-.btn{font:700 14px Manrope,sans-serif;border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:10px;padding:9px 14px;cursor:pointer;display:inline-flex;align-items:center;gap:8px}
-.btn:hover{border-color:var(--accent)}
-.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
-:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
-.stats{display:flex;gap:12px;margin-bottom:14px;flex-wrap:wrap}
-.stat{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px 16px;font-size:13px;color:var(--muted)}
-.stat b{display:block;font-size:20px;color:var(--ink)}
-.board{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:14px;overflow-x:auto}
-.grid{display:grid;grid-template-columns:70px repeat(7,minmax(104px,1fr));gap:6px;min-width:880px}
-.dh{background:var(--head);color:var(--headink);font-weight:800;font-size:13px;letter-spacing:.06em;text-transform:uppercase;text-align:center;padding:10px 4px;border-radius:8px}
-.dh.today{background:var(--accent)}
-.hr{background:var(--hour);font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:center;border-radius:8px;color:var(--ink)}
-.hr.now{background:var(--now);color:#fff}
-.cell{min-height:46px;border:0;border-radius:8px;background:var(--empty);color:var(--cink);font:600 12px/1.25 Manrope,sans-serif;text-align:center;padding:6px 8px;cursor:pointer;transition:transform .12s,box-shadow .12s;word-break:break-word}
-.cell:hover{transform:translateY(-1px);box-shadow:0 2px 8px rgba(0,0,0,.14)}
-.cell.filled.done{opacity:.55;text-decoration:line-through}
-.cell.sel{box-shadow:inset 0 0 0 2px var(--accent)}
-dialog{border:1px solid var(--line);border-radius:16px;background:var(--panel);color:var(--ink);padding:22px;width:min(420px,92vw);font-family:Manrope,sans-serif}
-dialog::backdrop{background:rgba(10,12,20,.55)}
-dialog h2{margin:0 0 4px;font-size:18px}
-dialog p{margin:0 0 14px;color:var(--muted);font-size:13px}
-label{display:block;font-size:12px;font-weight:700;color:var(--muted);margin:12px 0 6px}
-input[type=text]{width:100%;font:600 15px Manrope,sans-serif;padding:11px 12px;border-radius:10px;border:1px solid var(--line);background:var(--empty);color:var(--ink)}
-.sw{display:flex;gap:8px;flex-wrap:wrap}
-.sw label{margin:0}
-.sw input{position:absolute;opacity:0}
-.sw span{display:block;width:32px;height:32px;border-radius:50%;border:2px solid transparent;cursor:pointer}
-.sw input:checked+span{border-color:var(--ink);transform:scale(1.12)}
-.sw input:focus-visible+span{outline:3px solid var(--accent);outline-offset:2px}
-.row{display:flex;gap:8px;justify-content:flex-end;margin-top:20px;flex-wrap:wrap}
-.legend{display:flex;gap:14px;margin-top:12px;font-size:12px;color:var(--muted);flex-wrap:wrap}
-@media print{body{background:#fff}.tools,.stats,.legend{display:none}.board{border:0;padding:0}}
-input[type=email],input[type=password]{width:100%;font:600 15px Manrope,sans-serif;padding:11px 12px;border-radius:10px;border:1px solid var(--line);background:var(--empty);color:var(--ink)}
-.hidden{display:none!important}
-.auth{position:fixed;inset:0;background:var(--bg);display:grid;place-items:center;z-index:50;padding:16px}
-.card{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:28px;width:min(400px,100%)}
-.card h2{margin:0 0 4px;font-size:22px}.card p{margin:0 0 6px;color:var(--muted);font-size:14px}
-.card .btn.primary{width:100%;justify-content:center;margin-top:18px;padding:12px}
-.link{background:none;border:0;color:var(--accent);font:700 14px Manrope,sans-serif;cursor:pointer;margin-top:14px;padding:0}
-.err{color:#d6455d;font-size:13px;font-weight:600;min-height:18px;margin-top:10px}
-#sync{font-size:13px;font-weight:600;color:var(--muted);align-self:center}
-</style>
-</head>
-<body>
-<div class="auth" id="auth">
-  <form class="card" id="aform" novalidate>
-    <h2 id="atitle">Connexion</h2>
-    <p id="asub">Retrouve ton emploi du temps sur n’importe quel appareil.</p>
-    <div id="nameBox" class="hidden"><label for="aname">Prénom</label><input type="text" id="aname" maxlength="40" autocomplete="given-name"></div>
-    <label for="aemail">Adresse e-mail</label><input type="email" id="aemail" autocomplete="email">
-    <label for="apw">Mot de passe</label><input type="password" id="apw" autocomplete="current-password">
-    <div class="err" id="aerr" role="alert"></div>
-    <button type="submit" class="btn primary" id="abtn">Se connecter</button>
-    <button type="button" class="link" id="aswitch">Pas de compte ? Créer un compte</button>
-  </form>
-</div>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mon Planning</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;800&family=Pinyon+Script&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --bg: #fff0d2;
+      --bg2: #ffe5b4;
+      --card: #fff9ea;
+      --ink: #7b5230;
+      --ink2: #a07a52;
+      --line: #ecd3a3;
+      --btn: #7b5230;
+      --btnink: #fff6e3;
+      --empty: #fbe7bf;
+      --hour: #f4d9a3;
+      --now: #c2562d;
+      --c1: #cfe0f0;
+      --c2: #cfe3c8;
+      --c3: #e0d0ee;
+      --c4: #ffd9a8;
+      --c5: #f6c6c0;
+      --c6: #f7e29a;
+      --c7: #bfe3df;
+      --c8: #e4d9c8;
+      --cink: #4a2f17;
+      --sh: 0 14px 34px rgba(123, 82, 48, .16)
+    }
 
-<div class="wrap hidden" id="app">
-  <header>
-    <div class="title"><h1>EMPLOI DU TEMPS</h1><span id="owner" contenteditable="true" spellcheck="false" aria-label="Ton prénom">Ton prénom</span></div>
-    <div class="tools">
-      <span id="sync" aria-live="polite"></span>
-      <button class="btn" id="theme" type="button"></button>
-      <button class="btn" id="print" type="button">Imprimer / PDF</button>
-      <button class="btn" id="reset" type="button">Tout effacer</button>
-      <button class="btn" id="logout" type="button">Déconnexion</button>
-    </div>
-  </header>
-  <div class="stats">
-    <div class="stat"><b id="s1">0</b>activités</div>
-    <div class="stat"><b id="s2">0 h</b>planifiées par semaine</div>
-    <div class="stat"><b id="s3">0 h</b>de temps libre (8h–00h)</div>
-  </div>
-  <div class="board"><div class="grid" id="grid"></div></div>
-  <div class="legend">Clique sur une case pour ajouter ou modifier une activité. Les créneaux vont de 8h à 00h. Tout est enregistré dans ta base de données.</div>
-</div>
+    [data-theme="dark"] {
+      --bg: #1c1511;
+      --bg2: #271c15;
+      --card: #2b2018;
+      --ink: #f1dcb8;
+      --ink2: #c0a584;
+      --line: #4a3828;
+      --btn: #e9c58c;
+      --btnink: #2a1c10;
+      --empty: #35271d;
+      --hour: #40301f;
+      --now: #ff8a5c;
+      --c1: #2f4660;
+      --c2: #33503a;
+      --c3: #4a3a63;
+      --c4: #6b4a22;
+      --c5: #6b3a35;
+      --c6: #675a22;
+      --c7: #25595a;
+      --c8: #45392c;
+      --cink: #f6e8d0;
+      --sh: 0 14px 34px rgba(0, 0, 0, .4)
+    }
 
-<dialog id="dlg">
-  <h2 id="dtitle">Activité</h2>
-  <p id="dsub"></p>
-  <label for="dtext">Intitulé</label>
-  <input type="text" id="dtext" maxlength="60" placeholder="Ex : Algèbre linéaire, TD, Sport…" autocomplete="off">
-  <label>Couleur</label><div class="sw" id="sw"></div>
-  <label>Durée</label><div class="sw" id="dur"></div>
-  <div class="err" id="derr" role="alert"></div>
-  <div class="row">
-    <button type="button" class="btn" id="dcancel">Annuler</button>
-    <button type="button" class="btn" id="ddel">Supprimer</button>
-    <button type="button" class="btn primary" id="dsave">Enregistrer</button>
-  </div>
-</dialog>
+    * {
+      box-sizing: border-box
+    }
 
-<script>
-(function(){
-  var DAYS=["Lundi","Mardi","Mercredi","Jeudi","Vendredi","Samedi","Dimanche"];
-  var COL=["Bleu","Vert","Violet","Orange","Rose","Jaune","Turquoise","Gris"];
-  var S={cells:{},name:""},cur=null,signup=false,timer;
-  var $=function(i){return document.getElementById(i);},q=function(s){return document.querySelector(s);};
-  var root=document.documentElement;
+    html {
+      scroll-behavior: smooth
+    }
 
-  function api(m,u,b){
-    return fetch(u,{method:m,headers:{"Content-Type":"application/json"},credentials:"same-origin",body:b?JSON.stringify(b):undefined})
-    .then(function(r){return r.json().catch(function(){return {};}).then(function(j){
-      if(!r.ok){var e=new Error(j.error||"Erreur serveur");e.status=r.status;throw e;} return j;});},
-      function(){throw new Error("Serveur injoignable. Vérifie ta connexion.");});
-  }
-  function flash(t){$("sync").textContent=t;clearTimeout(timer);timer=setTimeout(function(){$("sync").textContent="";},2500);}
-  function lostSession(e){if(e&&e.status===401){showAuth();return true;}return false;}
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font: 400 16px Poppins, system-ui, sans-serif;
+      transition: background .5s, color .5s;
+      overflow-x: hidden
+    }
 
-  /* Thème (mémorisé sur l’appareil) */
-  function setTheme(t){root.setAttribute("data-theme",t);try{localStorage.setItem("edt-theme",t);}catch(e){}
-    $("theme").textContent=t==="dark"?"☀️ Thème clair":"🌙 Thème sombre";}
-  var th=null;try{th=localStorage.getItem("edt-theme");}catch(e){}
-  setTheme(th||(window.matchMedia&&matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"));
-  $("theme").onclick=function(){setTheme(root.getAttribute("data-theme")==="dark"?"light":"dark");};
+    .blob {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(70px);
+      opacity: .55;
+      z-index: 0;
+      animation: fl 14s ease-in-out infinite;
+      pointer-events: none
+    }
 
-  /* Connexion / inscription */
-  function showAuth(){$("app").classList.add("hidden");$("auth").classList.remove("hidden");}
-  function setMode(s){signup=s;$("atitle").textContent=s?"Créer un compte":"Connexion";
-    $("abtn").textContent=s?"Créer mon compte":"Se connecter";
-    $("aswitch").textContent=s?"Déjà un compte ? Se connecter":"Pas de compte ? Créer un compte";
-    $("nameBox").classList.toggle("hidden",!s);$("apw").autocomplete=s?"new-password":"current-password";$("aerr").textContent="";}
-  $("aswitch").onclick=function(){setMode(!signup);};
-  $("aform").onsubmit=function(e){
-    e.preventDefault();$("aerr").textContent="";$("abtn").disabled=true;
-    api("POST",signup?"/api/register":"/api/login",{email:$("aemail").value,password:$("apw").value,name:$("aname").value})
-      .then(function(){$("apw").value="";return load();})
-      .catch(function(err){$("aerr").textContent=err.message;})
-      .then(function(){$("abtn").disabled=false;});
-  };
-  $("logout").onclick=function(){api("POST","/api/logout").then(function(){S={cells:{},name:""};showAuth();});};
+    .b1 {
+      width: 360px;
+      height: 360px;
+      background: var(--bg2);
+      top: -80px;
+      right: -60px
+    }
 
-  /* Chargement du planning depuis la base */
-  function load(){
-    return api("GET","/api/plan").then(function(p){
-      S.name=p.name;S.cells={};
-      p.cells.forEach(function(c){S.cells[c.day+"-"+c.hour]={t:c.title,c:c.color,dur:c.dur};});
-      $("owner").textContent=p.name||"Ton prénom";
-      $("auth").classList.add("hidden");$("app").classList.remove("hidden");draw();
-    });
-  }
-  var owner=$("owner");
-  owner.onblur=function(){var n=owner.textContent.trim();if(n===S.name)return;
-    api("PUT","/api/name",{name:n}).then(function(){S.name=n;flash("✓ Enregistré");}).catch(function(e){if(!lostSession(e))flash(e.message);});};
-  owner.onkeydown=function(e){if(e.key==="Enter"){e.preventDefault();owner.blur();}};
+    .b2 {
+      width: 300px;
+      height: 300px;
+      background: var(--hour);
+      bottom: -60px;
+      left: -80px;
+      animation-delay: -7s
+    }
 
-  /* Grille */
-  var grid=$("grid");
-  function hl(h){return (h%24)+"h00";}
-  function covered(d,h){for(var k=1;k<=3;k++){var c=S.cells[d+"-"+(h-k)];if(c&&c.dur>k)return true;}return false;}
-  function draw(){
-    grid.innerHTML="";
-    var now=new Date(),td=(now.getDay()+6)%7,nh=now.getHours(),total=0,hours=0;
-    grid.appendChild(document.createElement("div"));
-    DAYS.forEach(function(n,i){var e=document.createElement("div");e.className="dh"+(i===td?" today":"");e.textContent=n;grid.appendChild(e);});
-    for(var h=8;h<=23;h++){
-      var r=document.createElement("div");r.className="hr"+(h===nh?" now":"");r.textContent=hl(h);grid.appendChild(r);
-      for(var d=0;d<7;d++){
-        if(covered(d,h))continue;
-        var c=S.cells[d+"-"+h],b=document.createElement("button");
-        b.type="button";b.className="cell";
-        if(c){b.className+=" filled";b.style.background="var(--c"+c.c+")";b.textContent=c.t;
-          if(c.dur>1)b.style.gridRow="span "+c.dur;total++;hours+=c.dur;
-          b.setAttribute("aria-label",c.t+", "+DAYS[d]+" à "+hl(h));}
-        else b.setAttribute("aria-label","Ajouter, "+DAYS[d]+" à "+hl(h));
-        b.onclick=(function(d,h){return function(){openDlg(d,h);};})(d,h);
-        grid.appendChild(b);
+    @keyframes fl {
+      50% {
+        transform: translate(30px, 40px) scale(1.12)
       }
     }
-    $("s1").textContent=total;$("s2").textContent=hours+" h";$("s3").textContent=(112-hours)+" h";
-  }
 
-  /* Fenêtre d’édition (sans <form> : fonctionne partout) */
-  var dlg=$("dlg");
-  COL.forEach(function(n,i){var l=document.createElement("label");
-    l.innerHTML='<input type="radio" name="col" value="'+(i+1)+'" aria-label="'+n+'"><span style="background:var(--c'+(i+1)+')"></span>';$("sw").appendChild(l);});
-  [1,2,3,4].forEach(function(n){var l=document.createElement("label");
-    l.innerHTML='<input type="radio" name="dur" value="'+n+'" aria-label="'+n+' heure(s)"><span style="width:auto;border-radius:10px;padding:6px 12px;background:var(--empty);font:700 13px Manrope,sans-serif">'+n+' h</span>';$("dur").appendChild(l);});
-  function openDlg(d,h){
-    cur={d:d,h:h};var c=S.cells[d+"-"+h];
-    $("dtitle").textContent=c?"Modifier l’activité":"Nouvelle activité";
-    $("dsub").textContent=DAYS[d]+" à partir de "+hl(h);
-    $("dtext").value=c?c.t:"";$("derr").textContent="";$("ddel").style.display=c?"":"none";
-    q('input[name=col][value="'+(c?c.c:((d+h)%8)+1)+'"]').checked=true;
-    q('input[name=dur][value="'+(c?c.dur:1)+'"]').checked=true;
-    if(dlg.showModal)dlg.showModal();else dlg.setAttribute("open","");
-    $("dtext").focus();
-  }
-  function closeDlg(){if(dlg.close)dlg.close();else dlg.removeAttribute("open");}
-  function saveCell(){
-    var t=$("dtext").value.trim();
-    if(!t){$("derr").textContent="Donne un intitulé à l’activité.";return;}
-    var dur=Math.min(+q('input[name=dur]:checked').value,24-cur.h),col=+q('input[name=col]:checked').value,d=cur.d,h=cur.h;
-    $("dsave").disabled=true;
-    api("PUT","/api/cell",{day:d,hour:h,title:t,color:col,dur:dur}).then(function(){
-      for(var k=0;k<dur;k++)delete S.cells[d+"-"+(h+k)];
-      S.cells[d+"-"+h]={t:t,c:col,dur:dur};closeDlg();draw();flash("✓ Enregistré");
-    }).catch(function(e){if(lostSession(e))closeDlg();else $("derr").textContent=e.message;})
-    .then(function(){$("dsave").disabled=false;});
-  }
-  $("dsave").onclick=saveCell;
-  $("dtext").onkeydown=function(e){if(e.key==="Enter"){e.preventDefault();saveCell();}};
-  $("dcancel").onclick=closeDlg;
-  $("ddel").onclick=function(){var d=cur.d,h=cur.h;
-    api("DELETE","/api/cell?day="+d+"&hour="+h).then(function(){delete S.cells[d+"-"+h];closeDlg();draw();flash("✓ Supprimé");})
-    .catch(function(e){if(lostSession(e))closeDlg();else $("derr").textContent=e.message;});};
-  dlg.addEventListener("click",function(e){if(e.target===dlg)closeDlg();});
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 4vw;
+      background: color-mix(in srgb, var(--bg) 82%, transparent);
+      backdrop-filter: blur(12px)
+    }
 
-  $("print").onclick=function(){window.print();};
-  $("reset").onclick=function(){if(confirm("Effacer toute la semaine ? Cette action est définitive."))
-    api("DELETE","/api/plan").then(function(){S.cells={};draw();flash("✓ Planning vidé");}).catch(function(e){if(!lostSession(e))flash(e.message);});};
+    .logo {
+      font-weight: 800;
+      font-size: 21px;
+      line-height: .95;
+      letter-spacing: -.02em
+    }
 
-  /* Démarrage : session existante ? */
-  load().catch(function(){showAuth();});
-})();
-</script>
+    nav .links {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap
+    }
+
+    nav a {
+      color: var(--ink);
+      text-decoration: none;
+      font-weight: 500;
+      padding: 8px 14px;
+      border-radius: 99px;
+      transition: background .25s
+    }
+
+    nav a:hover {
+      background: var(--hour)
+    }
+
+    .btn {
+      font: 500 14px Poppins, sans-serif;
+      border: 0;
+      background: var(--btn);
+      color: var(--btnink);
+      border-radius: 10px;
+      padding: 11px 20px;
+      cursor: pointer;
+      transition: transform .2s, box-shadow .2s, opacity .2s
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--sh)
+    }
+
+    .btn:active {
+      transform: scale(.97)
+    }
+
+    .btn.ghost {
+      background: transparent;
+      color: var(--ink);
+      box-shadow: inset 0 0 0 1.5px var(--ink)
+    }
+
+    .btn:disabled {
+      opacity: .6
+    }
+
+    :focus-visible {
+      outline: 3px solid var(--now);
+      outline-offset: 2px
+    }
+
+    main {
+      position: relative;
+      z-index: 1;
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 0 4vw 70px
+    }
+
+    .hero {
+      text-align: center;
+      padding: 46px 0 26px
+    }
+
+    .script {
+      font: 400 clamp(40px, 7vw, 74px)/1.1 "Pinyon Script", cursive;
+      margin: 0
+    }
+
+    #owner {
+      outline: none;
+      border-bottom: 2px dashed transparent;
+      transition: border-color .2s
+    }
+
+    #owner:hover,
+    #owner:focus {
+      border-color: var(--ink2)
+    }
+
+    h1 {
+      font-weight: 800;
+      font-size: clamp(34px, 6vw, 64px);
+      line-height: 1.05;
+      margin: 6px 0 18px;
+      letter-spacing: -.025em
+    }
+
+    .w {
+      display: inline-block;
+      opacity: 0;
+      transform: translateY(34px);
+      animation: up .8s cubic-bezier(.2, .8, .2, 1) forwards
+    }
+
+    @keyframes up {
+      to {
+        opacity: 1;
+        transform: none
+      }
+    }
+
+    .say {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--card);
+      border-radius: 99px;
+      padding: 10px 20px;
+      box-shadow: var(--sh);
+      font-weight: 500;
+      max-width: 100%;
+      animation: up .8s .5s both
+    }
+
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--now);
+      flex: none;
+      animation: pu 1.8s infinite
+    }
+
+    @keyframes pu {
+      0% {
+        box-shadow: 0 0 0 0 var(--now)
+      }
+
+      100% {
+        box-shadow: 0 0 0 12px transparent
+      }
+    }
+
+    .dayp {
+      max-width: 420px;
+      margin: 18px auto 0;
+      animation: up .8s .7s both
+    }
+
+    .dayp small {
+      display: flex;
+      justify-content: space-between;
+      color: var(--ink2);
+      font-size: 13px;
+      margin-bottom: 6px
+    }
+
+    .bar {
+      height: 8px;
+      border-radius: 9px;
+      background: var(--hour);
+      overflow: hidden
+    }
+
+    .bar i {
+      display: block;
+      height: 100%;
+      width: 0;
+      background: var(--ink);
+      border-radius: 9px;
+      transition: width 1.6s cubic-bezier(.2, .8, .2, 1)
+    }
+
+    h2 {
+      font-weight: 800;
+      font-size: clamp(24px, 3.4vw, 34px);
+      letter-spacing: -.02em;
+      margin: 46px 0 16px
+    }
+
+    .rv {
+      opacity: 0;
+      transform: translateY(28px);
+      transition: opacity .8s, transform .8s cubic-bezier(.2, .8, .2, 1)
+    }
+
+    .rv.in {
+      opacity: 1;
+      transform: none
+    }
+
+    .today {
+      display: flex;
+      gap: 18px;
+      overflow-x: auto;
+      padding: 6px 4px 22px;
+      scroll-snap-type: x mandatory
+    }
+
+    .tc {
+      flex: 0 0 228px;
+      height: 250px;
+      border-radius: 28px;
+      padding: 22px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      text-align: left;
+      border: 0;
+      cursor: pointer;
+      color: var(--cink);
+      scroll-snap-align: start;
+      box-shadow: var(--sh);
+      transition: transform .35s cubic-bezier(.2, .8, .2, 1);
+      opacity: 0;
+      animation: up .7s forwards;
+      font-family: inherit
+    }
+
+    .tc:hover {
+      transform: translateY(-8px) rotate(-1deg)
+    }
+
+    .tc b {
+      font-size: 34px;
+      font-weight: 800;
+      letter-spacing: -.03em
+    }
+
+    .tc span {
+      font-size: 18px;
+      font-weight: 600;
+      line-height: 1.25;
+      word-break: break-word
+    }
+
+    .tc em {
+      font-style: normal;
+      font-size: 12px;
+      font-weight: 600;
+      opacity: .75
+    }
+
+    .tc.on {
+      outline: 3px solid var(--now);
+      outline-offset: 3px
+    }
+
+    .tc.add {
+      background: transparent;
+      box-shadow: none;
+      border: 2px dashed var(--ink2);
+      color: var(--ink);
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      text-align: center
+    }
+
+    .tc.add b {
+      font-size: 48px
+    }
+
+    .board {
+      background: var(--card);
+      border-radius: 28px;
+      padding: 16px;
+      box-shadow: var(--sh);
+      overflow-x: auto
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 62px repeat(7, minmax(108px, 1fr));
+      gap: 7px;
+      min-width: 900px
+    }
+
+    .dh {
+      background: var(--btn);
+      color: var(--btnink);
+      font-weight: 600;
+      font-size: 13px;
+      text-align: center;
+      padding: 10px 4px;
+      border-radius: 12px
+    }
+
+    .dh.today {
+      background: var(--now);
+      color: #fff
+    }
+
+    .hr {
+      background: var(--hour);
+      font-weight: 600;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 12px
+    }
+
+    .hr.now {
+      background: var(--now);
+      color: #fff
+    }
+
+    .cell {
+      min-height: 48px;
+      border: 0;
+      border-radius: 12px;
+      background: var(--empty);
+      color: var(--cink);
+      font: 500 12px/1.3 Poppins, sans-serif;
+      padding: 6px 8px;
+      cursor: pointer;
+      transition: transform .2s, box-shadow .2s, background .2s;
+      word-break: break-word;
+      position: relative
+    }
+
+    .cell:not(.filled)::after {
+      content: "+";
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      font-size: 20px;
+      color: var(--ink2);
+      opacity: 0;
+      transition: opacity .2s
+    }
+
+    .cell:not(.filled):hover::after {
+      opacity: 1
+    }
+
+    .cell:hover {
+      transform: scale(1.04);
+      box-shadow: var(--sh);
+      z-index: 2
+    }
+
+    .cell.filled {
+      font-weight: 600
+    }
+
+    .pop {
+      animation: pp .5s both
+    }
+
+    @keyframes pp {
+      from {
+        opacity: 0;
+        transform: scale(.7)
+      }
+
+      to {
+        opacity: 1;
+        transform: none
+      }
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 18px
+    }
+
+    .stat {
+      background: var(--card);
+      border-radius: 26px;
+      padding: 24px;
+      box-shadow: var(--sh)
+    }
+
+    .stat b {
+      display: block;
+      font-size: 46px;
+      font-weight: 800;
+      letter-spacing: -.03em
+    }
+
+    .stat span {
+      color: var(--ink2);
+      font-size: 14px
+    }
+
+    .foot {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-top: 36px
+    }
+
+    dialog {
+      border: 0;
+      border-radius: 28px;
+      background: var(--card);
+      color: var(--ink);
+      padding: 26px;
+      width: min(430px, 92vw);
+      font-family: Poppins, sans-serif;
+      box-shadow: var(--sh)
+    }
+
+    dialog[open] {
+      animation: dz .35s cubic-bezier(.2, .8, .2, 1)
+    }
+
+    @keyframes dz {
+      from {
+        opacity: 0;
+        transform: scale(.88) translateY(20px)
+      }
+    }
+
+    dialog::backdrop {
+      background: rgba(40, 25, 12, .5);
+      backdrop-filter: blur(4px)
+    }
+
+    dialog h3 {
+      margin: 0;
+      font-size: 22px;
+      font-weight: 800
+    }
+
+    dialog p {
+      margin: 2px 0 14px;
+      color: var(--ink2);
+      font-size: 14px
+    }
+
+    label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--ink2);
+      margin: 14px 0 6px
+    }
+
+    input[type=text],
+    input[type=email],
+    input[type=password] {
+      width: 100%;
+      font: 500 15px Poppins, sans-serif;
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: 2px solid transparent;
+      background: var(--empty);
+      color: var(--ink);
+      transition: border-color .2s
+    }
+
+    input:focus {
+      border-color: var(--ink);
+      outline: 0
+    }
+
+    .sw {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap
+    }
+
+    .sw label {
+      margin: 0
+    }
+
+    .sw input {
+      position: absolute;
+      opacity: 0
+    }
+
+    .sw span {
+      display: block;
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      border: 3px solid transparent;
+      cursor: pointer;
+      transition: transform .2s
+    }
+
+    .sw input:checked+span {
+      border-color: var(--ink);
+      transform: scale(1.15)
+    }
+
+    .sw input:focus-visible+span {
+      outline: 3px solid var(--now);
+      outline-offset: 2px
+    }
+
+    .sw .d {
+      width: auto;
+      border-radius: 12px;
+      padding: 7px 14px;
+      background: var(--empty);
+      font: 600 13px Poppins, sans-serif
+    }
+
+    .sw input:checked+.d {
+      background: var(--btn);
+      color: var(--btnink)
+    }
+
+    .row {
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+      margin-top: 22px;
+      flex-wrap: wrap
+    }
+
+    .err {
+      color: #c2412d;
+      font-size: 13px;
+      font-weight: 500;
+      min-height: 18px;
+      margin-top: 10px
+    }
+
+    .hidden {
+      display: none !important
+    }
+
+    .auth {
+      position: fixed;
+      inset: 0;
+      z-index: 50;
+      background: var(--bg);
+      display: grid;
+      place-items: center;
+      padding: 16px;
+      overflow: auto
+    }
+
+    .card {
+      background: var(--card);
+      border-radius: 30px;
+      padding: 32px;
+      width: min(410px, 100%);
+      box-shadow: var(--sh);
+      animation: up .8s both
+    }
+
+    .card .btn {
+      width: 100%;
+      margin-top: 18px;
+      padding: 14px
+    }
+
+    .link {
+      background: none;
+      border: 0;
+      color: var(--ink);
+      font: 600 14px Poppins, sans-serif;
+      cursor: pointer;
+      margin-top: 14px;
+      text-decoration: underline;
+      padding: 0
+    }
+
+    #toast {
+      position: fixed;
+      left: 50%;
+      bottom: 26px;
+      transform: translate(-50%, 90px);
+      background: var(--btn);
+      color: var(--btnink);
+      padding: 13px 24px;
+      border-radius: 99px;
+      font-weight: 500;
+      z-index: 60;
+      transition: transform .5s cubic-bezier(.2, .8, .2, 1);
+      box-shadow: var(--sh);
+      max-width: 90vw;
+      text-align: center
+    }
+
+    #toast.on {
+      transform: translate(-50%, 0)
+    }
+
+    @media(prefers-reduced-motion:reduce) {
+      * {
+        animation-duration: .01ms !important;
+        animation-delay: 0s !important;
+        transition-duration: .01ms !important
+      }
+
+      html {
+        scroll-behavior: auto
+      }
+    }
+
+    @media print {
+
+      .blob,
+      nav,
+      .foot,
+      #toast,
+      .today,
+      .stats,
+      h2.nop {
+        display: none !important
+      }
+
+      body {
+        background: #fff
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="blob b1"></div>
+  <div class="blob b2"></div>
+  <div class="auth" id="auth">
+    <form class="card" id="aform" novalidate>
+      <p class="script" style="font-size:52px;text-align:center" id="atitle">Bienvenue</p>
+      <p id="asub" style="text-align:center;color:var(--ink2);margin:0 0 6px">Retrouve ton planning sur tous tes
+        appareils.</p>
+      <div id="nameBox" class="hidden"><label for="aname">Prénom</label><input type="text" id="aname" maxlength="40"
+          autocomplete="given-name"></div>
+      <label for="aemail">Adresse e-mail</label><input type="email" id="aemail" autocomplete="email">
+      <label for="apw">Mot de passe</label><input type="password" id="apw" autocomplete="current-password">
+      <div class="err" id="aerr" role="alert"></div>
+      <button type="submit" class="btn" id="abtn">Se connecter</button>
+      <div style="text-align:center"><button type="button" class="link" id="aswitch">Pas de compte ? Créer un
+          compte</button></div>
+    </form>
+  </div>
+
+  <div id="app" class="hidden">
+    <nav>
+      <div class="logo">Mon<br>Planning</div>
+      <div class="links">
+        <a href="#top">Accueil</a><a href="#today">Aujourd’hui</a><a href="#week">Ma semaine</a><a
+          href="#bilan">Bilan</a>
+        <button class="btn ghost" id="theme" type="button" aria-label="Changer de thème"></button>
+        <button class="btn" id="logout" type="button">Déconnexion</button>
+      </div>
+    </nav>
+    <main id="top">
+      <section class="hero">
+        <p class="script"><span id="hello">Bonjour</span> <span id="owner" contenteditable="true" spellcheck="false"
+            aria-label="Ton prénom">toi</span></p>
+        <h1><span class="w" style="animation-delay:.1s">Organiser</span> <span class="w"
+            style="animation-delay:.25s">chaque</span> <span class="w" style="animation-delay:.4s">heure</span><br><span
+            class="w" style="animation-delay:.55s">de</span> <span class="w" style="animation-delay:.7s">votre</span>
+          <span class="w" style="animation-delay:.85s">année</span></h1>
+        <div class="say" aria-live="polite"><i class="dot"></i><span id="say">…</span></div>
+        <div class="dayp"><small><span>Ta journée (8h → minuit)</span><span id="pct">0 %</span></small>
+          <div class="bar"><i id="fill"></i></div>
+        </div>
+      </section>
+      <h2 class="rv" id="today">Aujourd’hui</h2>
+      <div class="today rv" id="todayList"></div>
+      <h2 class="rv" id="week">Ma semaine</h2>
+      <div class="board rv">
+        <div class="grid" id="grid"></div>
+      </div>
+      <h2 class="rv" id="bilan">Le bilan</h2>
+      <div class="stats rv">
+        <div class="stat"><b id="s1">0</b><span>activités planifiées</span></div>
+        <div class="stat"><b id="s2">0</b><span>heures planifiées par semaine</span></div>
+        <div class="stat"><b id="s3">0</b><span>heures libres (8h–00h)</span></div>
+      </div>
+      <div class="foot"><button class="btn ghost" id="print" type="button">Imprimer / PDF</button><button
+          class="btn ghost" id="reset" type="button">Tout effacer</button></div>
+    </main>
+  </div>
+
+  <dialog id="dlg">
+    <h3 id="dtitle">Activité</h3>
+    <p id="dsub"></p>
+    <label for="dtext">Intitulé</label>
+    <input type="text" id="dtext" maxlength="60" placeholder="Ex : Algèbre, TD, Sport…" autocomplete="off">
+    <label>Couleur</label>
+    <div class="sw" id="sw"></div>
+    <label>Durée</label>
+    <div class="sw" id="dur"></div>
+    <div class="err" id="derr" role="alert"></div>
+    <div class="row"><button type="button" class="btn ghost" id="dcancel">Annuler</button><button type="button"
+        class="btn ghost" id="ddel">Supprimer</button><button type="button" class="btn" id="dsave">Enregistrer</button>
+    </div>
+  </dialog>
+  <div id="toast" role="status"></div>
+
+  <script>
+    (function () {
+      var DAYS = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"];
+      var COL = ["Bleu", "Vert", "Violet", "Orange", "Rose", "Jaune", "Turquoise", "Sable"];
+      var S = { cells: {}, name: "" }, cur = null, signup = false, first = true, tt;
+      var $ = function (i) { return document.getElementById(i); }, Q = function (s) { return document.querySelector(s); };
+      var root = document.documentElement;
+      function api(m, u, b) {
+        return fetch(u, { method: m, headers: { "Content-Type": "application/json" }, credentials: "same-origin", body: b ? JSON.stringify(b) : undefined })
+          .then(function (r) { return r.json().catch(function () { return {}; }).then(function (j) { if (!r.ok) { var e = new Error(j.error || "Erreur serveur"); e.status = r.status; throw e; } return j; }); },
+            function () { throw new Error("Serveur injoignable. Vérifie ta connexion."); });
+      }
+      function toast(t) { var e = $("toast"); e.textContent = t; e.classList.add("on"); clearTimeout(tt); tt = setTimeout(function () { e.classList.remove("on"); }, 2600); }
+      function lost(e) { if (e && e.status === 401) { showAuth(); return true; } return false; }
+      function hl(h) { return (h % 24) + "h00"; }
+
+      /* thème */
+      function setTheme(t) { root.setAttribute("data-theme", t); try { localStorage.setItem("edt-theme", t); } catch (e) { } $("theme").textContent = t === "dark" ? "☀️ Clair" : "🌙 Sombre"; }
+      var th = null; try { th = localStorage.getItem("edt-theme"); } catch (e) { }
+      setTheme(th || (window.matchMedia && matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"));
+      $("theme").onclick = function () { setTheme(root.getAttribute("data-theme") === "dark" ? "light" : "dark"); toast(root.getAttribute("data-theme") === "dark" ? "Mode nuit activé 🌙" : "Mode jour activé ☀️"); };
+
+      /* connexion */
+      function showAuth() { $("app").classList.add("hidden"); $("auth").classList.remove("hidden"); }
+      function setMode(s) {
+        signup = s; $("atitle").textContent = s ? "Créons ton compte" : "Bienvenue"; $("abtn").textContent = s ? "Créer mon compte" : "Se connecter";
+        $("aswitch").textContent = s ? "Déjà un compte ? Se connecter" : "Pas de compte ? Créer un compte"; $("nameBox").classList.toggle("hidden", !s); $("aerr").textContent = "";
+      }
+      $("aswitch").onclick = function () { setMode(!signup); };
+      $("aform").onsubmit = function (e) {
+        e.preventDefault(); $("aerr").textContent = ""; $("abtn").disabled = true;
+        api("POST", signup ? "/api/register" : "/api/login", { email: $("aemail").value, password: $("apw").value, name: $("aname").value })
+          .then(function () { $("apw").value = ""; return load(); }).catch(function (x) { $("aerr").textContent = x.message; }).then(function () { $("abtn").disabled = false; });
+      };
+      $("logout").onclick = function () { api("POST", "/api/logout").then(function () { S = { cells: {}, name: "" }; first = true; showAuth(); }); };
+
+      function load() {
+        return api("GET", "/api/plan").then(function (p) {
+          S.name = p.name; S.cells = {}; p.cells.forEach(function (c) { S.cells[c.day + "-" + c.hour] = { t: c.title, c: c.color, dur: c.dur }; });
+          $("owner").textContent = p.name || "toi"; $("auth").classList.add("hidden"); $("app").classList.remove("hidden"); draw();
+          toast("Content de te revoir" + (p.name ? ", " + p.name : "") + " ✨");
+        });
+      }
+      var ow = $("owner");
+      ow.onblur = function () { var n = ow.textContent.trim(); if (n === S.name) return; api("PUT", "/api/name", { name: n }).then(function () { S.name = n; toast("Prénom enregistré ✓"); }).catch(function (e) { if (!lost(e)) toast(e.message); }); };
+      ow.onkeydown = function (e) { if (e.key === "Enter") { e.preventDefault(); ow.blur(); } };
+
+      /* données utiles */
+      function covered(d, h) { for (var k = 1; k <= 3; k++) { var c = S.cells[d + "-" + (h - k)]; if (c && c.dur > k) return true; } return false; }
+      function todayList() { var d = (new Date().getDay() + 6) % 7, a = []; for (var h = 8; h <= 23; h++) { var c = S.cells[d + "-" + h]; if (c) a.push({ h: h, c: c }); } return a; }
+      function count(el, to, suf) { var t0 = null, s = suf || ""; (function f(t) { if (!t0) t0 = t; var p = Math.min((t - t0) / 900, 1); el.textContent = Math.round(to * (1 - Math.pow(1 - p, 3))) + s; if (p < 1) requestAnimationFrame(f); })(performance.now()); }
+
+      /* messages vivants */
+      function talk() {
+        var n = new Date(), h = n.getHours(), m = n.getMinutes(), L = todayList(), cur_ = null, nx = null;
+        $("hello").textContent = h < 5 ? "Bonne nuit" : h < 12 ? "Bonjour" : h < 18 ? "Bon après-midi" : "Bonsoir";
+        L.forEach(function (x) { if (h >= x.h && h < x.h + x.c.dur) cur_ = x; else if (x.h > h && !nx) nx = x; });
+        var msg;
+        if (h < 8) msg = "La journée démarre à 8h : " + (L.length ? "tu as " + L.length + " activité" + (L.length > 1 ? "s" : "") + " de prévu" + (L.length > 1 ? "es" : "e") + "." : "rien de prévu pour l’instant.");
+        else if (cur_) msg = "En ce moment : " + cur_.c.t + " — jusqu’à " + hl(cur_.h + cur_.c.dur) + ".";
+        else if (nx) msg = "Prochaine étape : " + nx.c.t + " à " + hl(nx.h) + ".";
+        else msg = L.length ? "Journée terminée, bravo ! Repose-toi 🌙" : "Rien de prévu aujourd’hui. Clique sur une case pour te lancer.";
+        $("say").textContent = msg;
+        var p = Math.max(0, Math.min(100, Math.round(((h - 8) * 60 + m) / 9.6))); $("pct").textContent = p + " %"; $("fill").style.width = p + "%";
+      }
+      setInterval(function () { if (!$("app").classList.contains("hidden")) { talk(); } }, 60000);
+
+      /* dessin */
+      function draw() {
+        var g = $("grid"); g.innerHTML = ""; var now = new Date(), td = (now.getDay() + 6) % 7, nh = now.getHours(), total = 0, hours = 0, i = 0;
+        g.appendChild(document.createElement("div"));
+        DAYS.forEach(function (n, k) { var e = document.createElement("div"); e.className = "dh" + (k === td ? " today" : ""); e.textContent = n; g.appendChild(e); });
+        for (var h = 8; h <= 23; h++) {
+          var r = document.createElement("div"); r.className = "hr" + (h === nh ? " now" : ""); r.textContent = hl(h); g.appendChild(r);
+          for (var d = 0; d < 7; d++) {
+            if (covered(d, h)) continue;
+            var c = S.cells[d + "-" + h], b = document.createElement("button"); b.type = "button"; b.className = "cell";
+            if (c) {
+              b.className += " filled" + (first ? " pop" : ""); b.style.background = "var(--c" + c.c + ")"; b.textContent = c.t; if (c.dur > 1) b.style.gridRow = "span " + c.dur;
+              if (first) b.style.animationDelay = (i++ * 40) + "ms"; total++; hours += c.dur; b.setAttribute("aria-label", c.t + ", " + DAYS[d] + " à " + hl(h));
+            }
+            else b.setAttribute("aria-label", "Ajouter, " + DAYS[d] + " à " + hl(h));
+            b.onclick = (function (d, h) { return function () { openDlg(d, h); }; })(d, h); g.appendChild(b);
+          }
+        }
+        var tl = $("todayList"); tl.innerHTML = ""; var L = todayList(), hh = now.getHours();
+        L.forEach(function (x, k) {
+          var b = document.createElement("button"); b.type = "button"; b.className = "tc" + (hh >= x.h && hh < x.h + x.c.dur ? " on" : "");
+          b.style.background = "var(--c" + x.c.c + ")"; b.style.animationDelay = (k * 110) + "ms";
+          var a = document.createElement("b"), t = document.createElement("span"), e = document.createElement("em");
+          a.textContent = hl(x.h); t.textContent = x.c.t; e.textContent = x.c.dur + " h" + (b.className.indexOf("on") > 0 ? " · en cours" : "");
+          b.appendChild(a); b.appendChild(t); b.appendChild(e); b.onclick = function () { openDlg(td, x.h); }; tl.appendChild(b);
+        });
+        var ad = document.createElement("button"); ad.type = "button"; ad.className = "tc add"; ad.style.animationDelay = (L.length * 110) + "ms";
+        ad.innerHTML = "<b>+</b><span>" + (L.length ? "Ajouter une activité" : "Planifier ma journée") + "</span>";
+        ad.onclick = function () { var f = Math.min(23, Math.max(8, hh + 1)); while (f < 23 && S.cells[td + "-" + f]) f++; openDlg(td, f); }; tl.appendChild(ad);
+        count($("s1"), total); count($("s2"), hours, "h"); count($("s3"), 112 - hours, "h");
+        talk(); first = false;
+      }
+
+      /* fenêtre */
+      var dlg = $("dlg");
+      COL.forEach(function (n, i) { var l = document.createElement("label"); l.innerHTML = '<input type="radio" name="col" value="' + (i + 1) + '" aria-label="' + n + '"><span style="background:var(--c' + (i + 1) + ')"></span>'; $("sw").appendChild(l); });
+      [1, 2, 3, 4].forEach(function (n) { var l = document.createElement("label"); l.innerHTML = '<input type="radio" name="dur" value="' + n + '" aria-label="' + n + ' heure(s)"><span class="d">' + n + ' h</span>'; $("dur").appendChild(l); });
+      function openDlg(d, h) {
+        cur = { d: d, h: h }; var c = S.cells[d + "-" + h];
+        $("dtitle").textContent = c ? "Modifier l’activité" : "Nouvelle activité"; $("dsub").textContent = DAYS[d] + " à partir de " + hl(h);
+        $("dtext").value = c ? c.t : ""; $("derr").textContent = ""; $("ddel").style.display = c ? "" : "none";
+        Q('input[name=col][value="' + (c ? c.c : ((d + h) % 8) + 1) + '"]').checked = true; Q('input[name=dur][value="' + (c ? c.dur : 1) + '"]').checked = true;
+        if (dlg.showModal) dlg.showModal(); else dlg.setAttribute("open", ""); $("dtext").focus();
+      }
+      function closeDlg() { if (dlg.close) dlg.close(); else dlg.removeAttribute("open"); }
+      function saveCell() {
+        var t = $("dtext").value.trim(); if (!t) { $("derr").textContent = "Donne un nom à ton activité."; return; }
+        var dur = Math.min(+Q('input[name=dur]:checked').value, 24 - cur.h), col = +Q('input[name=col]:checked').value, d = cur.d, h = cur.h; $("dsave").disabled = true;
+        api("PUT", "/api/cell", { day: d, hour: h, title: t, color: col, dur: dur }).then(function () {
+          for (var k = 0; k < dur; k++)delete S.cells[d + "-" + (h + k)]; S.cells[d + "-" + h] = { t: t, c: col, dur: dur }; closeDlg(); draw(); toast("C’est planté 🌱 « " + t + " » est enregistré");
+        }).catch(function (e) { if (lost(e)) closeDlg(); else $("derr").textContent = e.message; }).then(function () { $("dsave").disabled = false; });
+      }
+      $("dsave").onclick = saveCell; $("dtext").onkeydown = function (e) { if (e.key === "Enter") { e.preventDefault(); saveCell(); } };
+      $("dcancel").onclick = closeDlg;
+      $("ddel").onclick = function () { var d = cur.d, h = cur.h; api("DELETE", "/api/cell?day=" + d + "&hour=" + h).then(function () { delete S.cells[d + "-" + h]; closeDlg(); draw(); toast("Activité supprimée"); }).catch(function (e) { if (lost(e)) closeDlg(); else $("derr").textContent = e.message; }); };
+      dlg.addEventListener("click", function (e) { if (e.target === dlg) closeDlg(); });
+      $("print").onclick = function () { window.print(); };
+      $("reset").onclick = function () { if (confirm("Effacer toute la semaine ? C’est définitif.")) api("DELETE", "/api/plan").then(function () { S.cells = {}; draw(); toast("Planning vidé, page blanche !"); }).catch(function (e) { if (!lost(e)) toast(e.message); }); };
+
+      /* apparition au défilement */
+      var io = ("IntersectionObserver" in window) ? new IntersectionObserver(function (es) { es.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); } }); }, { threshold: .12 }) : null;
+      document.querySelectorAll(".rv").forEach(function (e) { io ? io.observe(e) : e.classList.add("in"); });
+
+      load().catch(function () { showAuth(); });
+    })();
+  </script>
 </body>
+
 </html>
