@@ -8,8 +8,14 @@
 <style>
 :root{--bg:#fff0d2;--bg2:#ffe5b4;--card:#fff9ea;--ink:#7b5230;--ink2:#a07a52;--line:#ecd3a3;--btn:#7b5230;--btnink:#fff6e3;--empty:#fbe7bf;--hour:#f4d9a3;--now:#c2562d;
 --c1:#cfe0f0;--c2:#cfe3c8;--c3:#e0d0ee;--c4:#ffd9a8;--c5:#f6c6c0;--c6:#f7e29a;--c7:#bfe3df;--c8:#e4d9c8;--cink:#4a2f17;--sh:0 14px 34px rgba(123,82,48,.16)}
-[data-theme="dark"]{--bg:#1c1511;--bg2:#271c15;--card:#2b2018;--ink:#f1dcb8;--ink2:#c0a584;--line:#4a3828;--btn:#e9c58c;--btnink:#2a1c10;--empty:#35271d;--hour:#40301f;--now:#ff8a5c;
---c1:#2f4660;--c2:#33503a;--c3:#4a3a63;--c4:#6b4a22;--c5:#6b3a35;--c6:#675a22;--c7:#25595a;--c8:#45392c;--cink:#f6e8d0;--sh:0 14px 34px rgba(0,0,0,.4)}
+[data-theme="dark"],[data-theme="midnight"]{--c1:#2f4660;--c2:#33503a;--c3:#4a3a63;--c4:#6b4a22;--c5:#6b3a35;--c6:#675a22;--c7:#25595a;--c8:#45392c;--cink:#f6e8d0;--sh:0 14px 34px rgba(0,0,0,.4)}
+[data-theme="dark"]{--bg:#1c1511;--bg2:#271c15;--card:#2b2018;--ink:#f1dcb8;--ink2:#c0a584;--line:#4a3828;--btn:#e9c58c;--btnink:#2a1c10;--empty:#35271d;--hour:#40301f;--now:#ff8a5c}
+[data-theme="midnight"]{--bg:#0f1624;--bg2:#17233a;--card:#18223a;--ink:#dbe6ff;--ink2:#93a5cc;--line:#2b3a5c;--btn:#8fb3ff;--btnink:#0c1426;--empty:#202c47;--hour:#263556;--now:#ff7a9c}
+[data-theme="ocean"]{--bg:#e6f4fb;--bg2:#c6e6f5;--card:#f6fcff;--ink:#17517a;--ink2:#4f87ab;--line:#b7d9ea;--btn:#17517a;--btnink:#f2fbff;--empty:#d3ebf7;--hour:#b5dcf0;--now:#e8590c}
+[data-theme="forest"]{--bg:#e9f3e3;--bg2:#cfe6c4;--card:#f6fbf2;--ink:#2f5a34;--ink2:#628a64;--line:#c3dcb9;--btn:#2f5a34;--btnink:#f3fbef;--empty:#d9ebd0;--hour:#bddcaf;--now:#d9480f}
+[data-theme="rose"]{--bg:#ffe8ef;--bg2:#ffd0df;--card:#fff6f9;--ink:#8a2f55;--ink2:#b96a8a;--line:#f5c3d4;--btn:#8a2f55;--btnink:#fff3f7;--empty:#fbd8e4;--hour:#f6bcd0;--now:#d6336c}
+[data-theme="lavender"]{--bg:#f0eafc;--bg2:#ddd0f6;--card:#faf7ff;--ink:#52358a;--ink2:#8468b8;--line:#d9ccf1;--btn:#52358a;--btnink:#f7f3ff;--empty:#e4daf7;--hour:#d1c0f0;--now:#e8590c}
+[data-theme="slate"]{--bg:#f1f3f6;--bg2:#e0e4eb;--card:#fff;--ink:#2a3140;--ink2:#6b7385;--line:#dfe3ea;--btn:#2a3140;--btnink:#fff;--empty:#eceff3;--hour:#dde2ea;--now:#5b4bdb}
 *{box-sizing:border-box}html{scroll-behavior:smooth}
 body{margin:0;background:var(--bg);color:var(--ink);font:400 16px Poppins,system-ui,sans-serif;transition:background .5s,color .5s;overflow-x:hidden}
 .blob{position:fixed;border-radius:50%;filter:blur(70px);opacity:.55;z-index:0;animation:fl 14s ease-in-out infinite;pointer-events:none}
@@ -79,6 +85,10 @@ input:focus{border-color:var(--ink);outline:0}
 #toast.on{transform:translate(-50%,0)}
 @media(prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;animation-delay:0s!important;transition-duration:.01ms!important}html{scroll-behavior:auto}}
 @media print{.blob,nav,.foot,#toast,.today,.stats,h2.nop{display:none!important}body{background:#fff}}
+.tgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(118px,1fr));gap:12px;margin-top:6px}
+.tcard{display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding:16px 14px;border-radius:20px;border:3px solid transparent;cursor:pointer;font-family:Poppins,sans-serif;box-shadow:inset 0 0 0 1.5px rgba(128,128,128,.28);transition:transform .25s,border-color .25s,box-shadow .25s}
+.tcard:hover{transform:translateY(-4px);box-shadow:var(--sh)}.tcard i{width:20px;height:20px;border-radius:50%}.tcard span{width:100%;font-weight:600;font-size:13px;text-align:left;margin-top:6px}
+.tcard[aria-pressed="true"]{border-color:var(--now);transform:scale(1.04)}
 </style>
 </head>
 <body>
@@ -101,7 +111,7 @@ input:focus{border-color:var(--ink);outline:0}
   <div class="logo">Mon<br>Planning</div>
   <div class="links">
     
-    <button class="btn ghost" id="theme" type="button" aria-label="Changer de thème"></button>
+    <button class="btn ghost" id="theme" type="button" aria-label="Choisir un thème">🎨 Thème</button>
     <button class="btn" id="logout" type="button">Déconnexion</button>
   </div>
 </nav>
@@ -131,6 +141,11 @@ input:focus{border-color:var(--ink);outline:0}
   <div class="err" id="derr" role="alert"></div>
   <div class="row"><button type="button" class="btn ghost" id="dcancel">Annuler</button><button type="button" class="btn ghost" id="ddel">Supprimer</button><button type="button" class="btn" id="dsave">Enregistrer</button></div>
 </dialog>
+<dialog id="tdlg">
+  <h3>Choisis ton thème</h3><p>Les couleurs de toute la page changent aussitôt. Ton choix est mémorisé.</p>
+  <div class="tgrid" id="tgrid"></div>
+  <div class="row"><button type="button" class="btn" id="tclose">Fermer</button></div>
+</dialog>
 <div id="toast" role="status"></div>
 
 <script>
@@ -148,10 +163,20 @@ function lost(e){if(e&&e.status===401){showAuth();return true;}return false;}
 function hl(h){return (h%24)+"h00";}
 
 /* thème */
-function setTheme(t){root.setAttribute("data-theme",t);try{localStorage.setItem("edt-theme",t);}catch(e){}$("theme").textContent=t==="dark"?"☀️ Clair":"🌙 Sombre";}
+var THEMES=[["light","Crème","#fff0d2","#7b5230","#c2562d"],["dark","Nuit chocolat","#1c1511","#f1dcb8","#ff8a5c"],["midnight","Minuit","#0f1624","#dbe6ff","#8fb3ff"],["ocean","Océan","#e6f4fb","#17517a","#e8590c"],["forest","Forêt","#e9f3e3","#2f5a34","#d9480f"],["rose","Rose","#ffe8ef","#8a2f55","#d6336c"],["lavender","Lavande","#f0eafc","#52358a","#e8590c"],["slate","Ardoise","#f1f3f6","#2a3140","#5b4bdb"]];
+var tdlg=$("tdlg"),tgrid=$("tgrid");
+function setTheme(t,nm){root.setAttribute("data-theme",t);try{localStorage.setItem("edt-theme",t);}catch(e){}
+ Array.prototype.forEach.call(tgrid.children,function(b){b.setAttribute("aria-pressed",String(b.dataset.t===t));});
+ if(nm)toast("Thème « "+nm+" » appliqué ✨");}
+THEMES.forEach(function(x){var b=document.createElement("button");b.type="button";b.className="tcard";b.dataset.t=x[0];b.style.background=x[2];b.style.color=x[3];
+ b.innerHTML='<i style="background:'+x[3]+'"></i><i style="background:'+x[4]+'"></i><span>'+x[1]+'</span>';
+ b.onclick=function(){setTheme(x[0],x[1]);};tgrid.appendChild(b);});
 var th=null;try{th=localStorage.getItem("edt-theme");}catch(e){}
-setTheme(th||(window.matchMedia&&matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"));
-$("theme").onclick=function(){setTheme(root.getAttribute("data-theme")==="dark"?"light":"dark");toast(root.getAttribute("data-theme")==="dark"?"Mode nuit activé 🌙":"Mode jour activé ☀️");};
+if(!THEMES.some(function(x){return x[0]===th;}))th=(window.matchMedia&&matchMedia("(prefers-color-scheme: dark)").matches)?"dark":"light";
+setTheme(th);
+$("theme").onclick=function(){if(tdlg.showModal)tdlg.showModal();else tdlg.setAttribute("open","");};
+function closeT(){if(tdlg.close)tdlg.close();else tdlg.removeAttribute("open");}
+$("tclose").onclick=closeT;tdlg.addEventListener("click",function(e){if(e.target===tdlg)closeT();});
 
 /* connexion */
 function showAuth(){$("app").classList.add("hidden");$("auth").classList.remove("hidden");}
