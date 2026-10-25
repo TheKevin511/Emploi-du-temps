@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: emploi-du-temps
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /healthz
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        sync: false
+      - key: SECRET
+        generateValue: true
