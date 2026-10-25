@@ -1,1 +1,17 @@
-{"name":"emploi-du-temps","version":"2.0.0","private":true,"scripts":{"start":"node server.js"},"engines":{"node":">=18"},"dependencies":{"pg":"^8.13.0"}}
+{
+  "name": "emploi-du-temps",
+  "version": "2.1.0",
+  "private": true,
+  "description": "Planificateur hebdomadaire personnel (Node.js + PostgreSQL).",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "dependencies": {
+    "pg": "^8.13.0"
+  }
+}
