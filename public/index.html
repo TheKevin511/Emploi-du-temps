@@ -49,7 +49,7 @@
       --btnink: #ffffff;
       --empty: #f1e8f0;
       --hour: #e9d9e7;
-      --now: #16883F;
+      --now: #b8560b;
       --c1: #d2e4f4;
       --c2: #d3eedc;
       --c3: #ecd9ea;
@@ -940,7 +940,7 @@
         </section>
 
         <div class="page-actions">
-          <button class="btn ghost" id="print-button" type="button">Imprimer / PDF</button>
+          <button class="btn" id="pdf-button" type="button">Télécharger en PDF</button>
           <button class="btn ghost" id="reset-button" type="button">Tout effacer</button>
         </div>
       </main>
@@ -1450,6 +1450,33 @@
       }
     };
 
+    const downloadPdf = async () => {
+      const button = $('pdf-button');
+      button.disabled = true;
+
+      try {
+        const themeId = document.documentElement.getAttribute('data-theme');
+        const response = await fetch(`/api/pdf?theme=${encodeURIComponent(themeId)}`, { credentials: 'same-origin' });
+
+        if (!response.ok) {
+          const { error } = await response.json().catch(() => ({}));
+          throw new ApiError(error ?? 'Erreur serveur', response.status);
+        }
+
+        const link = createElement('a', {
+          href: URL.createObjectURL(await response.blob()),
+          download: 'emploi-du-temps.pdf',
+        });
+        link.click();
+        setTimeout(() => URL.revokeObjectURL(link.href), 1000);
+        showToast('PDF téléchargé 📄');
+      } catch (error) {
+        reportError(error instanceof ApiError ? error : new ApiError('Serveur injoignable. Vérifie ta connexion.', 0));
+      } finally {
+        button.disabled = false;
+      }
+    };
+
     const resetPlan = async () => {
       if (!window.confirm('Effacer toute la semaine ? C’est définitif.')) return;
 
@@ -1525,6 +1552,7 @@
       });
 
       // Actions de page
+      $('pdf-button').addEventListener('click', downloadPdf);
       $('print-button').addEventListener('click', () => window.print());
       $('reset-button').addEventListener('click', resetPlan);
     };
