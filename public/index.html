@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="fr" data-theme="light">
+<html lang="fr" data-theme="plum">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -35,6 +35,31 @@
       --c8: #e4d9c8;
       --cink: #4a2f17;
       --sh: 0 14px 34px rgba(123, 82, 48, .16);
+    }
+
+    /* Prune : palette du cours (violet #7B2574, vert #16883F, orange #B8560B, turquoise #0E7490) */
+    [data-theme="plum"] {
+      --bg: #f7f4f8;
+      --bg2: #ead7e8;
+      --card: #ffffff;
+      --ink: #3e1139;
+      --ink2: #5d6579;
+      --line: #e6dfe7;
+      --btn: #7b2574;
+      --btnink: #ffffff;
+      --empty: #f1e8f0;
+      --hour: #e9d9e7;
+      --now: #b8560b;
+      --c1: #d2e4f4;
+      --c2: #d3eedc;
+      --c3: #ecd9ea;
+      --c4: #f8dfc4;
+      --c5: #f8d7de;
+      --c6: #f6ebb8;
+      --c7: #cdebf0;
+      --c8: #ebe4d8;
+      --cink: #14192b;
+      --sh: 0 14px 40px -26px rgba(62, 17, 57, .35);
     }
 
     [data-theme="dark"],
@@ -968,10 +993,12 @@
     const DAY_MINUTES = HOURS.length * 60;
 
     const THEME_STORAGE_KEY = 'edt-theme';
+    const DEFAULT_THEME = 'plum';
     const TOAST_DURATION_MS = 2600;
     const STATUS_REFRESH_MS = 60_000;
 
     const THEMES = [
+      { id: 'plum',     label: 'Prune',         background: '#f7f4f8', text: '#3e1139', accent: '#b8560b' },
       { id: 'light',    label: 'Crème',         background: '#fff0d2', text: '#7b5230', accent: '#c2562d' },
       { id: 'dark',     label: 'Nuit chocolat', background: '#1c1511', text: '#f1dcb8', accent: '#ff8a5c' },
       { id: 'midnight', label: 'Minuit',        background: '#0f1624', text: '#dbe6ff', accent: '#8fb3ff' },
@@ -1331,8 +1358,7 @@
     const initTheme = () => {
       const saved = storage.get(THEME_STORAGE_KEY);
       const isKnown = THEMES.some(({ id }) => id === saved);
-      const prefersDark = window.matchMedia?.('(prefers-color-scheme: dark)').matches;
-      applyTheme(isKnown ? saved : prefersDark ? 'dark' : 'light');
+      applyTheme(isKnown ? saved : DEFAULT_THEME);
     };
 
     /* ==========================================================================
