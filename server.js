@@ -1,6 +1,7 @@
 /**
  * Emploi du temps — serveur HTTP.
- * Node.js (ES modules) + PostgreSQL. Une seule dépendance : pg.
+ * Node.js (ES modules) + PostgreSQL + génération de PDF.
+ * Dépendances : pg, pdf-lib.
  */
 import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
@@ -8,6 +9,7 @@ import { join } from 'node:path';
 import { createHmac, randomBytes, scrypt, timingSafeEqual } from 'node:crypto';
 import { promisify } from 'node:util';
 import pg from 'pg';
+import { buildPlanPdf } from './pdf.js';
 
 /* ==========================================================================
    Configuration
@@ -367,8 +369,21 @@ const deletePlan = async ({ res, user }) => {
   sendJson(res, 200, { ok: true });
 };
 
+const downloadPdf = async ({ res, url, user }) => {
+  const cells = await query('SELECT day, hour, title, color, dur FROM cells WHERE user_id = $1', [user.id]);
+  const pdf = await buildPlanPdf({ name: user.name, cells, themeId: url.searchParams.get('theme') });
+
+  res.writeHead(200, {
+    'Content-Type': 'application/pdf',
+    'Content-Disposition': 'attachment; filename="emploi-du-temps.pdf"',
+    'Cache-Control': 'no-store',
+  });
+  res.end(Buffer.from(pdf));
+};
+
 const PRIVATE_ROUTES = {
   'GET /api/plan': getPlan,
+  'GET /api/pdf': downloadPdf,
   'PUT /api/name': updateName,
   'PUT /api/cell': saveCell,
   'DELETE /api/cell': deleteCell,
