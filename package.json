@@ -1,6 +1,6 @@
 {
   "name": "emploi-du-temps",
-  "version": "2.1.0",
+  "version": "2.2.0",
   "private": true,
   "description": "Planificateur hebdomadaire personnel (Node.js + PostgreSQL).",
   "type": "module",
@@ -12,6 +12,7 @@
     "node": ">=22"
   },
   "dependencies": {
+    "pdf-lib": "^1.17.1",
     "pg": "^8.13.0"
   }
 }
