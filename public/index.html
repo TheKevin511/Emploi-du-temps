@@ -414,12 +414,7 @@
     .reveal {
       opacity: 0;
       transform: translateY(28px);
-      transition: opacity .8s, transform .8s cubic-bezier(.2, .8, .2, 1);
-    }
-
-    .reveal.is-revealed {
-      opacity: 1;
-      transform: none;
+      animation: up .8s cubic-bezier(.2, .8, .2, 1) .2s forwards;
     }
 
     /* ==== Tableau de la semaine ==== */
@@ -941,6 +936,7 @@
 
         <div class="page-actions">
           <button class="btn" id="pdf-button" type="button">Télécharger en PDF</button>
+          <button class="btn ghost" id="print-button" type="button">Imprimer</button>
           <button class="btn ghost" id="reset-button" type="button">Tout effacer</button>
         </div>
       </main>
@@ -1490,26 +1486,6 @@
       }
     };
 
-    const initRevealOnScroll = () => {
-      const targets = document.querySelectorAll('.reveal');
-
-      if (!('IntersectionObserver' in window)) {
-        targets.forEach((target) => target.classList.add('is-revealed'));
-        return;
-      }
-
-      const observer = new IntersectionObserver((entries) => {
-        entries
-          .filter((entry) => entry.isIntersecting)
-          .forEach(({ target }) => {
-            target.classList.add('is-revealed');
-            observer.unobserve(target);
-          });
-      }, { threshold: 0.12 });
-
-      targets.forEach((target) => observer.observe(target));
-    };
-
     /* ==========================================================================
        Initialisation
        ========================================================================== */
@@ -1562,7 +1538,6 @@
       buildThemePicker();
       initTheme();
       bindEvents();
-      initRevealOnScroll();
 
       setInterval(() => {
         if (!$('app').classList.contains('hidden')) updateStatus();
