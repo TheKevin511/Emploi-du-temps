@@ -698,6 +698,29 @@
       margin-top: 10px;
     }
 
+    .form-info {
+      background: var(--empty);
+      border-radius: 12px;
+      padding: 10px 14px;
+      font-size: 13px;
+      font-weight: 500;
+      margin-top: 12px;
+    }
+
+    .form-info:empty {
+      display: none;
+    }
+
+    .forgot-row {
+      text-align: right;
+    }
+
+    .forgot-row .link-button {
+      margin-top: 8px;
+      font-size: 13px;
+      font-weight: 500;
+    }
+
     .hidden {
       display: none !important;
     }
@@ -855,19 +878,27 @@
 
       <form class="auth-card" id="auth-form" novalidate>
         <p class="script auth-title" id="auth-title">Bienvenue</p>
-        <p class="auth-subtitle">Retrouve ton planning sur tous tes appareils.</p>
+        <p class="auth-subtitle" id="auth-subtitle">Retrouve ton planning sur tous tes appareils.</p>
 
         <div id="name-field" class="hidden">
           <label for="auth-name">Prénom</label>
           <input type="text" id="auth-name" maxlength="40" autocomplete="given-name">
         </div>
 
-        <label for="auth-email">Adresse e-mail</label>
-        <input type="email" id="auth-email" autocomplete="email">
+        <div id="email-field">
+          <label for="auth-email">Adresse e-mail</label>
+          <input type="email" id="auth-email" autocomplete="email">
+        </div>
 
-        <label for="auth-password">Mot de passe</label>
-        <input type="password" id="auth-password" autocomplete="current-password">
+        <div id="password-field">
+          <label for="auth-password" id="auth-password-label">Mot de passe</label>
+          <input type="password" id="auth-password" autocomplete="current-password">
+          <div class="forgot-row" id="forgot-row">
+            <button type="button" class="link-button" id="forgot-link">Mot de passe oublié ?</button>
+          </div>
+        </div>
 
+        <div class="form-info" id="auth-info" role="status"></div>
         <div class="form-error" id="auth-error" role="alert"></div>
         <button type="submit" class="btn" id="auth-submit">Se connecter</button>
         <div class="centered">
@@ -991,6 +1022,48 @@
     const WEEK_CAPACITY = HOURS.length * DAYS.length;
     const DAY_MINUTES = HOURS.length * 60;
 
+    // Les 4 écrans du formulaire d'accès : ce qui s'affiche dans chacun.
+    const AUTH_MODES = {
+      login: {
+        title: 'Bienvenue',
+        subtitle: 'Retrouve ton planning sur tous tes appareils.',
+        submit: 'Se connecter',
+        switchLabel: 'Pas de compte ? Créer un compte',
+        switchTo: 'signup',
+        fields: ['email', 'password'],
+        passwordLabel: 'Mot de passe',
+        passwordAutocomplete: 'current-password',
+      },
+      signup: {
+        title: 'Créons ton compte',
+        subtitle: 'Un compte pour retrouver ton planning partout.',
+        submit: 'Créer mon compte',
+        switchLabel: 'Déjà un compte ? Se connecter',
+        switchTo: 'login',
+        fields: ['name', 'email', 'password'],
+        passwordLabel: 'Mot de passe',
+        passwordAutocomplete: 'new-password',
+      },
+      forgot: {
+        title: 'Mot de passe oublié',
+        subtitle: 'Entre ton e-mail : on t’envoie un lien pour en choisir un nouveau.',
+        submit: 'Envoyer le lien',
+        switchLabel: 'Retour à la connexion',
+        switchTo: 'login',
+        fields: ['email'],
+      },
+      reset: {
+        title: 'Nouveau mot de passe',
+        subtitle: 'Choisis un mot de passe d’au moins 8 caractères.',
+        submit: 'Enregistrer et me connecter',
+        switchLabel: 'Annuler',
+        switchTo: 'login',
+        fields: ['password'],
+        passwordLabel: 'Nouveau mot de passe',
+        passwordAutocomplete: 'new-password',
+      },
+    };
+
     const THEME_STORAGE_KEY = 'edt-theme';
     const DEFAULT_THEME = 'plum';
     const TOAST_DURATION_MS = 2600;
@@ -1015,7 +1088,8 @@
       name: '',
       cells: new Map(), // "jour-heure" -> { title, color, duration }
       editing: null,    // { day, hour } pendant l'édition d'une activité
-      isSignUp: false,
+      authMode: 'login',
+      resetToken: '',   // jeton lu dans le lien reçu par e-mail
       isFirstRender: true,
     };
 
@@ -1401,13 +1475,39 @@
       $('app').classList.remove('hidden');
     };
 
-    const setAuthMode = (isSignUp) => {
-      state.isSignUp = isSignUp;
-      $('auth-title').textContent = isSignUp ? 'Créons ton compte' : 'Bienvenue';
-      $('auth-submit').textContent = isSignUp ? 'Créer mon compte' : 'Se connecter';
-      $('auth-switch').textContent = isSignUp ? 'Déjà un compte ? Se connecter' : 'Pas de compte ? Créer un compte';
-      $('name-field').classList.toggle('hidden', !isSignUp);
+    const setAuthInfo = (message = '') => {
+      $('auth-info').textContent = message;
+    };
+
+    const setAuthMode = (mode) => {
+      const config = AUTH_MODES[mode];
+      state.authMode = mode;
+
+      $('auth-title').textContent = config.title;
+      $('auth-subtitle').textContent = config.subtitle;
+      $('auth-submit').textContent = config.submit;
+      $('auth-switch').textContent = config.switchLabel;
+
+      ['name', 'email', 'password'].forEach((field) => {
+        $(`${field}-field`).classList.toggle('hidden', !config.fields.includes(field));
+      });
+      $('forgot-row').classList.toggle('hidden', mode !== 'login');
+
+      if (config.passwordLabel) {
+        $('auth-password-label').textContent = config.passwordLabel;
+        $('auth-password').autocomplete = config.passwordAutocomplete;
+      }
+
       $('auth-error').textContent = '';
+      setAuthInfo();
+    };
+
+    const leaveAuthMode = () => {
+      if (state.authMode === 'reset') {
+        state.resetToken = '';
+        history.replaceState(null, '', `${location.pathname}${location.search}`); // retire le jeton de l'adresse
+      }
+      setAuthMode(AUTH_MODES[state.authMode].switchTo);
     };
 
     const loadPlan = async () => {
@@ -1424,21 +1524,46 @@
       showToast(`Content de te revoir${name ? `, ${name}` : ''} ✨`);
     };
 
+    const submitAuthForm = async () => {
+      const email = $('auth-email').value;
+      const password = $('auth-password').value;
+
+      switch (state.authMode) {
+        case 'forgot':
+          await api('POST', '/api/forgot', { email });
+          setAuthMode('login');
+          setAuthInfo('Si un compte existe pour cette adresse, un e-mail vient d’être envoyé. Pense à regarder tes spams.');
+          return;
+
+        case 'reset':
+          await api('POST', '/api/reset', { token: state.resetToken, password });
+          state.resetToken = '';
+          history.replaceState(null, '', `${location.pathname}${location.search}`);
+          $('auth-password').value = '';
+          await loadPlan();
+          showToast('Mot de passe modifié, te voilà connecté ✓');
+          return;
+
+        default:
+          await api('POST', state.authMode === 'signup' ? '/api/register' : '/api/login', {
+            email,
+            password,
+            name: $('auth-name').value,
+          });
+          $('auth-password').value = '';
+          await loadPlan();
+      }
+    };
+
     const handleAuthSubmit = async (event) => {
       event.preventDefault();
       const submit = $('auth-submit');
       $('auth-error').textContent = '';
+      setAuthInfo();
       submit.disabled = true;
 
       try {
-        const endpoint = state.isSignUp ? '/api/register' : '/api/login';
-        await api('POST', endpoint, {
-          email: $('auth-email').value,
-          password: $('auth-password').value,
-          name: $('auth-name').value,
-        });
-        $('auth-password').value = '';
-        await loadPlan();
+        await submitAuthForm();
       } catch (error) {
         $('auth-error').textContent = error.message;
       } finally {
@@ -1531,7 +1656,8 @@
     const bindEvents = () => {
       // Authentification
       $('auth-form').addEventListener('submit', handleAuthSubmit);
-      $('auth-switch').addEventListener('click', () => setAuthMode(!state.isSignUp));
+      $('auth-switch').addEventListener('click', leaveAuthMode);
+      $('forgot-link').addEventListener('click', () => setAuthMode('forgot'));
       $('logout-button').addEventListener('click', logout);
 
       // Prénom
@@ -1585,6 +1711,15 @@
       setInterval(() => {
         if (!$('app').classList.contains('hidden')) updateStatus();
       }, STATUS_REFRESH_MS);
+
+      // Lien reçu par e-mail (…/#reset=JETON) : on affiche directement le formulaire de nouveau mot de passe.
+      const resetToken = new URLSearchParams(location.hash.slice(1)).get('reset');
+      if (resetToken) {
+        state.resetToken = resetToken;
+        setAuthMode('reset');
+        showAuth();
+        return;
+      }
 
       loadPlan().catch(showAuth);
     };
