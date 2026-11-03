@@ -698,6 +698,50 @@
       margin-top: 10px;
     }
 
+    .password-wrap {
+      position: relative;
+    }
+
+    .password-wrap input {
+      padding-right: 52px;
+    }
+
+    .eye-button {
+      position: absolute;
+      top: 50%;
+      right: 8px;
+      transform: translateY(-50%);
+      width: 36px;
+      height: 36px;
+      display: grid;
+      place-items: center;
+      border: 0;
+      border-radius: 10px;
+      background: transparent;
+      color: var(--ink2);
+      cursor: pointer;
+      transition: color .2s, background .2s;
+    }
+
+    .eye-button:hover {
+      color: var(--ink);
+      background: var(--hour);
+    }
+
+    .eye-button svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    .eye-button .icon-hidden,
+    .eye-button[aria-pressed="true"] .icon-visible {
+      display: none;
+    }
+
+    .eye-button[aria-pressed="true"] .icon-hidden {
+      display: block;
+    }
+
     .form-info {
       background: var(--empty);
       border-radius: 12px;
@@ -892,7 +936,19 @@
 
         <div id="password-field">
           <label for="auth-password" id="auth-password-label">Mot de passe</label>
-          <input type="password" id="auth-password" autocomplete="current-password">
+          <div class="password-wrap">
+            <input type="password" id="auth-password" autocomplete="current-password" autocapitalize="off" spellcheck="false">
+            <button type="button" class="eye-button" id="password-toggle" aria-label="Afficher le mot de passe" aria-pressed="false">
+              <svg class="icon-visible" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                <circle cx="12" cy="12" r="3"/>
+              </svg>
+              <svg class="icon-hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
+                <line x1="1" y1="1" x2="23" y2="23"/>
+              </svg>
+            </button>
+          </div>
           <div class="forgot-row" id="forgot-row">
             <button type="button" class="link-button" id="forgot-link">Mot de passe oublié ?</button>
           </div>
@@ -1134,11 +1190,12 @@
     const confirmDialog = $('confirm-dialog');
     let settleConfirmation = null;
 
-    const confirmAction = ({ title, message, acceptLabel = 'Supprimer' }) =>
+    const confirmAction = ({ title, message, acceptLabel = 'Supprimer', isDanger = true }) =>
       new Promise((resolve) => {
         $('confirm-title').textContent = title;
         $('confirm-message').textContent = message;
         $('confirm-accept').textContent = acceptLabel;
+        $('confirm-accept').classList.toggle('danger', isDanger);
 
         settleConfirmation = resolve;
         showDialog(confirmDialog);
@@ -1465,7 +1522,15 @@
     /* ==========================================================================
        Authentification et chargement du planning
        ========================================================================== */
+    const setPasswordVisibility = (isVisible) => {
+      const toggle = $('password-toggle');
+      $('auth-password').type = isVisible ? 'text' : 'password';
+      toggle.setAttribute('aria-pressed', String(isVisible));
+      toggle.setAttribute('aria-label', isVisible ? 'Masquer le mot de passe' : 'Afficher le mot de passe');
+    };
+
     const showAuth = () => {
+      setPasswordVisibility(false);
       $('app').classList.add('hidden');
       $('auth').classList.remove('hidden');
     };
@@ -1500,6 +1565,7 @@
 
       $('auth-error').textContent = '';
       setAuthInfo();
+      setPasswordVisibility(false);
     };
 
     const leaveAuthMode = () => {
@@ -1572,6 +1638,14 @@
     };
 
     const logout = async () => {
+      const confirmed = await confirmAction({
+        title: 'Te déconnecter ?',
+        message: 'Tu devras saisir à nouveau ton e-mail et ton mot de passe pour retrouver ton planning.',
+        acceptLabel: 'Me déconnecter',
+        isDanger: false,
+      });
+      if (!confirmed) return;
+
       await api('POST', '/api/logout').catch(() => {});
       state.name = '';
       state.cells.clear();
@@ -1658,6 +1732,9 @@
       $('auth-form').addEventListener('submit', handleAuthSubmit);
       $('auth-switch').addEventListener('click', leaveAuthMode);
       $('forgot-link').addEventListener('click', () => setAuthMode('forgot'));
+      $('password-toggle').addEventListener('click', () => {
+        setPasswordVisibility($('auth-password').type === 'password');
+      });
       $('logout-button').addEventListener('click', logout);
 
       // Prénom
